@@ -66,7 +66,7 @@ resource "aws_iam_service_linked_role" "default" {
 
 # Role that pods can assume for access to elasticsearch and kibana
 resource "aws_iam_role" "elasticsearch_user" {
-  count              = module.this.enabled && (length(var.iam_authorizing_role_arns) > 0 || length(var.iam_role_arns) > 0) ? 1 : 0
+  count              = module.this.enabled && module.this.create_iam_user ? 1 : 0
   name               = module.user_label.id
   assume_role_policy = join("", data.aws_iam_policy_document.assume_role.*.json)
   description        = "IAM Role to assume to access the Elasticsearch ${module.this.id} cluster"
@@ -76,7 +76,7 @@ resource "aws_iam_role" "elasticsearch_user" {
 }
 
 data "aws_iam_policy_document" "assume_role" {
-  count = module.this.enabled && (length(var.iam_authorizing_role_arns) > 0 || length(var.iam_role_arns) > 0) ? 1 : 0
+  count = module.this.enabled && (length(var.iam_authorizing_role_arns) > 0 || length(var.iam_role_arns) >0 || module.this.create_iam_user) ? 1 : 0
 
   statement {
     actions = [
@@ -90,7 +90,7 @@ data "aws_iam_policy_document" "assume_role" {
 
     principals {
       type        = "AWS"
-      identifiers = compact(concat(var.iam_authorizing_role_arns, var.iam_role_arns))
+      identifiers = compact(concat(var.iam_authorizing_role_arns, var.iam_role_arns, aws_iam_role.elasticsearch_user.*.arn))
     }
 
     effect = "Allow"
@@ -207,7 +207,7 @@ resource "aws_elasticsearch_domain" "default" {
 }
 
 data "aws_iam_policy_document" "default" {
-  count = module.this.enabled && (length(var.iam_authorizing_role_arns) > 0 || length(var.iam_role_arns) > 0) ? 1 : 0
+  count = module.this.enabled && (length(var.iam_authorizing_role_arns) > 0 || length(var.iam_role_arns) > 0) || module.this.create_iam_user ? 1 : 0
 
   statement {
     effect = "Allow"
@@ -221,7 +221,7 @@ data "aws_iam_policy_document" "default" {
 
     principals {
       type        = "AWS"
-      identifiers = distinct(compact(concat(var.iam_role_arns, aws_iam_role.elasticsearch_user.*.arn)))
+      identifiers = distinct(compact(concat(var.iam_role_arns, aws_iam_role.elasticsearch_user.*.arn, aws_iam_role.elasticsearch_user.*.arn)))
     }
   }
 
@@ -255,7 +255,7 @@ data "aws_iam_policy_document" "default" {
 }
 
 resource "aws_elasticsearch_domain_policy" "default" {
-  count           = module.this.enabled && (length(var.iam_authorizing_role_arns) > 0 || length(var.iam_role_arns) > 0) ? 1 : 0
+  count           = module.this.enabled && (length(var.iam_authorizing_role_arns) > 0 || length(var.iam_role_arns) > 0 || module.this.create_iam_user) ? 1 : 0
   domain_name     = module.this.id
   access_policies = join("", data.aws_iam_policy_document.default.*.json)
 }
