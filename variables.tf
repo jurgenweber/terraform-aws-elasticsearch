@@ -244,6 +244,12 @@ variable "kibana_subdomain_name" {
   description = "The name of the subdomain for Kibana in the DNS zone (_e.g._ `kibana`, `ui`, `ui-es`, `search-ui`, `kibana.elasticsearch`)"
 }
 
+variable "create_iam_user" {
+  type        = bool
+  default     = true
+  description = "create an iam user that can access the domain"
+}
+
 variable "create_iam_service_linked_role" {
   type        = bool
   default     = true
