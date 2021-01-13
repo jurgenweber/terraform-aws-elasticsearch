@@ -90,7 +90,7 @@ data "aws_iam_policy_document" "assume_role" {
 
     principals {
       type        = "AWS"
-      identifiers = compact(concat(var.iam_authorizing_role_arns, var.iam_role_arns, aws_iam_role.elasticsearch_user.*.arn))
+      identifiers = compact(concat(var.iam_authorizing_role_arns, var.iam_role_arns, [ "arn:aws:iam::${var.current_account_id}:role/${module.user_label.id}" ]))
     }
 
     effect = "Allow"

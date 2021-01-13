@@ -34,6 +34,12 @@ variable "vpc_id" {
   default     = null
 }
 
+variable "current_account_id" {
+  type        = string
+  description = "Your account ID"
+  default     = ""
+}
+
 variable "subnet_ids" {
   type        = list(string)
   description = "VPC Subnet IDs"
